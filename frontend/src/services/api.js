@@ -8,7 +8,14 @@ export const tokenStore = {
   clear: () => localStorage.removeItem(TOKEN_KEY),
 };
 
-const http = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api', timeout: 180000 });
+const PROD_API = 'https://materialtruth-ai.onrender.com/api';
+function resolveBaseURL() {
+  const raw = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '');
+  if (raw) return raw.endsWith('/api') ? raw : `${raw}/api`;
+  return import.meta.env.PROD ? PROD_API : '/api'; // dev uses the Vite proxy
+}
+
+const http = axios.create({ baseURL: resolveBaseURL(), timeout: 180000 });
 
 http.interceptors.request.use((config) => {
   const t = tokenStore.get();

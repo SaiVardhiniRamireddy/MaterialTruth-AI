@@ -15,13 +15,20 @@ import { errorHandler, notFound } from './middleware/errorHandler.js';
 export function createApp() {
   const app = express();
   app.disable('x-powered-by');
-  app.use(helmet());
-  app.use(
-    cors({
-      origin: (origin, cb) => (!origin || env.clientOrigin.includes(origin) ? cb(null, true) : cb(new Error('Not allowed by CORS'))),
-      credentials: false,
-    })
-  );
+  app.set('trust proxy', 1); // Render sits behind a proxy
+
+  const corsOptions = {
+    origin: (origin, cb) => cb(null, !origin || env.clientOrigin.includes(origin)),
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: false, // JWT is sent as a Bearer header, not cookies
+    maxAge: 600,
+    optionsSuccessStatus: 204,
+  };
+  app.use(cors(corsOptions));
+  app.options('*', cors(corsOptions));
+
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.use(express.json({ limit: '300kb' }));
   app.use('/api', rateLimit({ windowMs: 60 * 1000, limit: 200, standardHeaders: true, legacyHeaders: false }));
 
