@@ -1,0 +1,9 @@
+node_modules/
+.env
+*.log
+dist/
+.DS_Store
+Thumbs.db
+
+# mongodb-memory-server binary cache
+.cache-mongodb-memory-server/
